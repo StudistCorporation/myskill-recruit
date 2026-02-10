@@ -1,0 +1,27 @@
+{:deps {:aliases [:web :web-dev]}
+
+ :nrepl {:port 9631
+         :host "0.0.0.0"}
+
+ :dev-http
+ {3000 {:root "web/target/build"
+        :push-state/index "index.html"}}
+
+ :builds
+ {:web
+  {:output-dir "web/target/build"
+   :target     :browser
+   :modules    {:main {:init-fn todo-app.core/init}}
+   :build-hooks [(todo-app.build-status/build-hook)
+                 (todo-app.build-status/html-hook)]
+   :devtools
+   {:watch-dir "web/target/build"}}
+
+  :vitest
+  {:target     :esm-files
+   :ns-regexp  "-test$"
+   :output-dir "web/target/vitest"
+   :js-options {:js-provider :import}
+   :build-hooks [(todo-app.build-status/build-hook)]
+   :compiler-options
+   {:source-map true}}}}

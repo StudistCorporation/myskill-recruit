@@ -1,0 +1,10 @@
+.claude/
+.clj-kondo/.cache/
+.lsp/.cache/
+.cpcache/
+.shadow-cljs/
+web/target/
+node_modules/
+yarn-error.log
+.nrepl-port
+*.class

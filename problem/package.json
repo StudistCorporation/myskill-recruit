@@ -1,0 +1,21 @@
+{
+  "name": "todo-app",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "yarn && yarn shadow-cljs run todo-app.dev/watch",
+    "test": "yarn && yarn clean && yarn shadow-cljs compile vitest && yarn vitest run",
+    "test:watch": "yarn vitest",
+    "clean": "rm -rf web/target"
+  },
+  "devDependencies": {
+    "shadow-cljs": "3.3.5",
+    "vitest": "4.0.18",
+    "jsdom": "28.0.0"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  }
+}

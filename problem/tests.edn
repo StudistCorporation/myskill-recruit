@@ -1,0 +1,14 @@
+#kaocha/v1
+ {:tests [{:id :api
+           :source-paths ["api/src" "shared/src"]
+           :test-paths ["api/test/pure"]}
+
+          {:id :api-db
+           :source-paths ["api/src" "shared/src"]
+           :test-paths ["api/test/db"]
+           :kaocha.hooks/before [todo-app.test-hooks/prepare-db]
+           :kaocha.hooks/after [todo-app.test-hooks/cleanup-db]}]
+
+  :plugins [:kaocha.plugin/hooks]
+
+  :reporter [kaocha.report/dots]}

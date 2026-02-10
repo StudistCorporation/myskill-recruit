@@ -1,0 +1,12 @@
+{:linters {:not-empty? {:level :off}
+           :unresolved-symbol {:exclude [(todo-app.vitest/is [thrown?])]}}
+ :hooks {:analyze-call {todo-app.db/defquery todo-app.hooks/rewrite-defquery}}
+ :lint-as {todo-app.vitest/deftest clojure.test/deftest
+           todo-app.vitest/is clojure.test/is
+           todo-app.vitest/testing clojure.test/testing
+           todo-app.db/with-transaction next.jdbc/with-transaction
+           todo-app.test-helpers/testing-with-rollback clojure.test/testing}
+ :config-in-ns
+ {user {:linters {:unused-namespace {:level :off}
+                  :unused-referred-var {:level :off}
+                  :clojure-lsp/unused-public-var {:level :off}}}}}
