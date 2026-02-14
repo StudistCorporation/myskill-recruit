@@ -1,6 +1,7 @@
 (ns todo-app.db.todo-items
   (:require
-   [todo-app.db :as db :refer [defquery]]))
+   [todo-app.db :as db :refer [defquery]]
+  ))
 
 (defn- format-item
   [row]
@@ -64,6 +65,23 @@
    :from [:todo_items]
    :where [:= :todo_list_id list-id]}
   {:transform #(-> % first :max_order)})
+
+(defquery ^::db/dynamic get-item-by-id
+  "
+  item-idをもとにアイテムを取得するクエリ
+   
+  args:
+   - item-id: 取得対象のアイテムのID
+  
+  return:
+    - アイテムの内容(content)と完了状態(done)を含むマップ
+      (ex: {:content \"タスクの内容\", :done false})
+  "
+  [item-id]
+  {:select [:content :done]
+   :from [:todo_items]
+   :where [:= :id item-id]}
+  {:transform #(-> % first)})
 
 (defn reorder-items!
   [ordered-ids]
