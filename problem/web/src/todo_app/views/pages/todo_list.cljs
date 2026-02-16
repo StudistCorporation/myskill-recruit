@@ -223,19 +223,19 @@
   ;; - todo-app.state.todo-items に ::set-filter, ::current-filter, ::filtered-items が定義済み
   ;; - on-click で rf/dispatch を使ってフィルター状態を更新する
   ;; - 選択中のフィルターに応じてボタンのスタイルを切り替える ($filter-btn-active)
-  (let [current-filter :all]
+  (let [current-filter @(rf/subscribe [::todo-items/current-filter])]
     [:div {:class [$filter-area]}
      (for [[filter-key label] [[:all "すべて"] [:active "未完了"] [:done "完了"]]]
        ^{:key filter-key}
        [:button {:class [$filter-btn (when (= current-filter filter-key) $filter-btn-active)]
-                 :on-click #(js/console.log "filter:" (name filter-key))}
+                 :on-click (fn [_] (rf/dispatch [::todo-items/set-filter filter-key]))}
         label])]))
 
 (defn view
   [match]
   (let [list-id (-> match :parameters :path :list-id)
         lists @(rf/subscribe [::todo-lists/lists])
-        items @(rf/subscribe [::todo-items/items])
+        items @(rf/subscribe [::todo-items/filtered-items])
         current-list (some #(when (= (:id %) list-id) %) lists)
         drag-source (react/useRef nil)]
     [:div {:class [$container]}
