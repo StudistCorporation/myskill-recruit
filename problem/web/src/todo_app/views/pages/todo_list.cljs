@@ -132,6 +132,12 @@
        ["&:hover" {:background "#1578d3"}]))
 
 (defn- title-view
+  "
+  タイトルの表示と編集を行う関数
+  args:
+    - list-name: 現在のリストの名前
+    - list-id: リストのID
+  "
   [list-name list-id]
   (let [[editing? set-editing!] (react/useState false)]
     (if editing?
@@ -194,6 +200,13 @@
                         (js/console.log "due-date changed:" (.. e -target -value)))}])
 
 (defn- item-view
+  "
+   itemの表示設定を行う関数
+    args:
+      - item: アイテムのデータ (id, content, done など)
+      - on-drag-start: ドラッグ開始時のコールバック関数
+      - on-drop: ドロップ時のコールバック関数
+  "
   [item on-drag-start on-drop]
   [:div {:class [$item]
          :draggable true
@@ -206,7 +219,8 @@
             :checked (:done item)
             :on-change #(rf/dispatch [::todo-items/update-item
                                       (:id item)
-                                      {:done (not (:done item))}])}]
+                                      {:done (not (:done item))} 
+                                      (.reload (.-location js/window) true)])}]
    ^{:key (str "content-" (:id item))}
    [item-content item]
    ^{:key (str "due-date-" (:id item))}
