@@ -132,6 +132,12 @@
        ["&:hover" {:background "#1578d3"}]))
 
 (defn- title-view
+  "
+  タイトルの表示と編集を行う関数
+  args:
+    - list-name: 現在のリストの名前
+    - list-id: リストのID
+  "
   [list-name list-id]
   (let [[editing? set-editing!] (react/useState false)]
     (if editing?
@@ -168,7 +174,10 @@
 
 (defn- item-content
   [{:keys [id content done]}]
-  (let [[editing? set-editing!] (react/useState false)]
+  (let [
+        [editing? set-editing!] (react/useState false)
+        [content set-content!] (react/useState content)
+        ]
     (if editing?
       [:input {:class [$content-input]
                :auto-focus true
@@ -177,6 +186,7 @@
                           (set-editing! false)
                           (let [v (.. e -target -value)]
                             (when (not= v content)
+                              (set-content! v)
                               (rf/dispatch [::todo-items/update-item id {:content v}]))))
                :on-key-down (fn [e]
                               (when (= (.-key e) "Enter")
@@ -194,25 +204,39 @@
                         (js/console.log "due-date changed:" (.. e -target -value)))}])
 
 (defn- item-view
+  "
+   itemの表示設定を行う関数
+    args:
+      - item: アイテムのデータ (id, content, done など)
+      - on-drag-start: ドラッグ開始時のコールバック関数
+      - on-drop: ドロップ時のコールバック関数
+  "
   [item on-drag-start on-drop]
-  [:div {:class [$item]
-         :draggable true
-         :on-drag-start #(on-drag-start (:id item) %)
-         :on-drag-over #(.preventDefault %)
-         :on-drop #(on-drop (:id item) %)}
-   [:span {:class [$drag-handle]} "\u2261"]
-   [:input {:type "checkbox"
-            :class [$checkbox]
-            :checked (:done item)
-            :on-change #(rf/dispatch [::todo-items/update-item
-                                      (:id item)
-                                      {:done (not (:done item))}])}]
-   ^{:key (str "content-" (:id item))}
-   [item-content item]
-   ^{:key (str "due-date-" (:id item))}
-   [item-due-date item]
-   ^{:key (str "menu-" (:id item))}
-   [item-menu (:id item)]])
+  ; useState(ある変数とそれをレンダリングする関数を返してくれる関数)
+  ; [入れたい変数 書き換える関数] (react/useState 初期値)
+  (let [[done? set-done!] (react/useState (:done item))]
+    [:div {:class [$item]
+           :draggable true
+           :on-drag-start #(on-drag-start (:id item) %)
+           :on-drag-over #(.preventDefault %)
+           :on-drop #(on-drop (:id item) %)}
+     [:span {:class [$drag-handle]} "\u2261"]
+     [:input {:type "checkbox"
+              :class [$checkbox]
+              :checked done?
+              :on-change (fn [_]
+                           (let [new-done (not done?)]
+                             (set-done! new-done)
+                             (rf/dispatch [::todo-items/update-item
+                                           (:id item)
+                                           {:done new-done}])))}]
+     ^{:key (str "content-" (:id item))}
+     [item-content item]
+     ^{:key (str "due-date-" (:id item))}
+     [item-due-date item]
+     ^{:key (str "menu-" (:id item))}
+     [item-menu (:id item)]]))
+
 
 (defn- filter-buttons
   []
@@ -223,19 +247,19 @@
   ;; - todo-app.state.todo-items に ::set-filter, ::current-filter, ::filtered-items が定義済み
   ;; - on-click で rf/dispatch を使ってフィルター状態を更新する
   ;; - 選択中のフィルターに応じてボタンのスタイルを切り替える ($filter-btn-active)
-  (let [current-filter :all]
+  (let [current-filter @(rf/subscribe [::todo-items/current-filter])]
     [:div {:class [$filter-area]}
      (for [[filter-key label] [[:all "すべて"] [:active "未完了"] [:done "完了"]]]
        ^{:key filter-key}
        [:button {:class [$filter-btn (when (= current-filter filter-key) $filter-btn-active)]
-                 :on-click #(js/console.log "filter:" (name filter-key))}
+                 :on-click (fn [_] (rf/dispatch [::todo-items/set-filter filter-key]))}
         label])]))
 
 (defn view
   [match]
   (let [list-id (-> match :parameters :path :list-id)
         lists @(rf/subscribe [::todo-lists/lists])
-        items @(rf/subscribe [::todo-items/items])
+        items @(rf/subscribe [::todo-items/filtered-items])
         current-list (some #(when (= (:id %) list-id) %) lists)
         drag-source (react/useRef nil)]
     [:div {:class [$container]}
